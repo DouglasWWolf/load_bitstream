@@ -71,6 +71,9 @@ int main(int argc, const char** argv)
 //=================================================================================================
 void execute()
 {
+    // This is the equivalent of "sudo" 
+    setuid(0);
+
     // If we're not running with root privileges, give up
     if (geteuid() != 0) throw runtime_error("Must be root to run.  Use sudo.");
 
