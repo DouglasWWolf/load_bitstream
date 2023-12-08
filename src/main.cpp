@@ -16,6 +16,7 @@ using namespace std;
 bool      performHotReset = false;
 string    configFile      = "load_bitstream.conf";
 string    bitstream;
+string    ipAddress       = "10.11.12.2:3121";
 PciDevice PCI;
 
 // These values are read in from the config file durint init()
@@ -204,6 +205,7 @@ static bool writeStrVecToFile(vector<string>& v, string filename)
 void parseCommandLine(int argc, const char** argv)
 {
     int idx = 1;
+    vector<string> param;
 
     // So long as we have parameters to parse...
     while (idx < argc)
@@ -218,10 +220,10 @@ void parseCommandLine(int argc, const char** argv)
         // Is the user specifying a config file?
         else if (arg == "-config" && argv[idx])
             configFile = argv[idx++];
-        
-        // Is the user specifying the filename of the bitstream?
-        else if (arg[0] != '-' && bitstream.empty())
-            bitstream = arg;
+          
+        // Is the user specifying a non-switch parameter?
+        else if (arg[0] != '-')
+            param.push_back(arg);
 
         // Otherwise, complain about the invalid switch
         else
@@ -232,12 +234,18 @@ void parseCommandLine(int argc, const char** argv)
     }
 
     // If there's no filename on the command line, just show the usage
-    if (bitstream.empty())
+    if (param.empty())
     {
         printf("usage:\n");
         printf("load_bitstream <filename> [-hot_reset] [-config <filename>]\n");
         exit(1);
     }
+
+    // The first parameter is the bitstream
+    bitstream = param[0];
+
+    // The 2nd parameter, if it exists, is the IP address
+    if (param.size() > 1) ipAddress = param[1];
 }
 //=================================================================================================
 
@@ -292,6 +300,7 @@ void performMacroSubstitutions(vector<string>& v)
     for (auto& line : v)
     {
         replace(line, "\%file\%", bitstream);
+        replace(line, "\%ip_address\%", ipAddress);
     }
 }
 //=================================================================================================
